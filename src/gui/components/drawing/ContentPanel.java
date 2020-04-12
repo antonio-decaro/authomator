@@ -48,7 +48,10 @@ public class ContentPanel extends JPanel {
 
         for (Pair<StateComponent, StateComponent> pair : edges.keySet()) {
             LinkComponent edge = edges.get(pair);
-            edge.draw(g2d);
+            if (selectedEdge == edge)
+                edge.draw(g2d, true);
+            else
+                edge.draw(g2d);
         }
 
         if (guideArrow != null) {
@@ -67,7 +70,7 @@ public class ContentPanel extends JPanel {
                 } if (SwingUtilities.isRightMouseButton(e)) {
                     setInitialState(e.getX(), e.getY());
                 } if (SwingUtilities.isLeftMouseButton(e)) {
-                    selectState(e.getX(), e.getY());
+                    selectObject(e.getX(), e.getY());
                 } if (!SwingUtilities.isLeftMouseButton(e) && !SwingUtilities.isRightMouseButton(e)) {
                     setStateFinal(e.getX(), e.getY());
                 } if (SwingUtilities.isRightMouseButton(e)) {
@@ -101,7 +104,11 @@ public class ContentPanel extends JPanel {
             @Override
             public void keyPressed(KeyEvent e) {
                 if(e.getKeyCode() == KeyEvent.VK_DELETE) {
-                    deleteState();
+                    deleteObject();
+                } else if (Character.isAlphabetic(e.getKeyChar())) {
+                    renameEdge(e.getKeyChar());
+                } else if (e.getKeyCode() == 8) {
+                    renameEdge();
                 }
             }
         });
@@ -116,20 +123,52 @@ public class ContentPanel extends JPanel {
         refresh();
     }
 
-    private void deleteState() {
+    private void deleteObject() {
         if (selectedState != null) {
             states.remove(selectedState);
             edges.keySet().removeIf(pair -> selectedState == pair.getKey() || selectedState == pair.getValue());
             selectedState = null;
             refresh();
+        } else if (selectedEdge != null) {
+            edges.keySet().removeIf(pair -> edges.get(pair) == selectedEdge);
+            refresh();
         }
     }
 
-    private void selectState(int x, int y) {
+    private void renameEdge(char c) {
+        if (selectedEdge != null) {
+            if (selectedEdge.getLabel().equals("ε"))
+                selectedEdge.setLabel(c + "");
+            else
+                selectedEdge.setLabel(selectedEdge.getLabel() + '-' + c);
+            refresh();
+        }
+    }
+
+    private void renameEdge() {
+        if (selectedEdge != null) {
+            String label = selectedEdge.getLabel();
+            if (label.length() > 1)
+                selectedEdge.setLabel(selectedEdge.getLabel().substring(0, label.length() - 2));
+            else if (label.length() == 1)
+                selectedEdge.setLabel("ε");
+            refresh();
+        }
+    }
+
+    private void selectObject(int x, int y) {
         selectedState = null;
+        selectedEdge = null;
         for (StateComponent stateComponent : states) {
             if (stateComponent.contains(x, y)) {
                 selectedState = stateComponent;
+                break;
+            }
+        }
+        for (Pair<StateComponent, StateComponent> key : edges.keySet()) {
+            LinkComponent edge = edges.get(key);
+            if (edge.contains(x, y)) {
+                selectedEdge = edge;
                 break;
             }
         }
@@ -193,7 +232,7 @@ public class ContentPanel extends JPanel {
 
     private void insertEdge() {
         if (tempSecondState != null && tempFirstState != null) {
-            LinkComponent edge = new LinkComponent(tempFirstState, tempSecondState, "alfred");
+            LinkComponent edge = new LinkComponent(tempFirstState, tempSecondState, "ε");
             Pair<StateComponent, StateComponent> pair = new Pair<>(tempFirstState, tempSecondState);
             edges.put(pair, edge);
             refresh();
@@ -204,6 +243,7 @@ public class ContentPanel extends JPanel {
 
     private Line2D guideArrow;
     private StateComponent selectedState, tempFirstState, tempSecondState;
+    private LinkComponent selectedEdge;
     private List<StateComponent> states;
     private Map<Pair<StateComponent, StateComponent>, LinkComponent> edges;
 
