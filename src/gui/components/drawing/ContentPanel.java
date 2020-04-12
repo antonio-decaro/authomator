@@ -1,5 +1,6 @@
 package gui.components.drawing;
 
+import core.TransitionFunction;
 import javafx.util.Pair;
 
 import javax.swing.*;
@@ -7,10 +8,8 @@ import javax.swing.border.StrokeBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ContentPanel extends JPanel {
 
@@ -18,11 +17,65 @@ public class ContentPanel extends JPanel {
         super();
         states = new LinkedList<>();
         edges = new HashMap<>();
+        statePopupMenu = new StatePopupMenu(this);
+        add(statePopupMenu);
 
         setFocusable(true);
         setBackground(Color.WHITE);
         setBorder(new StrokeBorder(new BasicStroke(2.5f)));
         addListeners();
+    }
+
+    public Set<String> getStates() {
+        Set<String> ret = new TreeSet<>();
+        for (StateComponent stateComponent : states)
+            ret.add(stateComponent.getLabel());
+        return ret;
+    }
+
+    public Set<String> getAlphabet() {
+        Set<String> ret = new HashSet<>();
+        ret.add("a");
+        ret.add("b");
+        return ret;
+    }
+
+    public String getInitialState() {
+        for (StateComponent stateComponent : states) {
+            if (stateComponent.isInitial())
+                return stateComponent.getLabel();
+        }
+        return null;
+    }
+
+    public Set<String> getFinalStates() {
+        Set<String> ret = new TreeSet<>();
+        for (StateComponent stateComponent : states)
+            if (stateComponent.isFinal())
+                ret.add(stateComponent.getLabel());
+        return ret;
+    }
+
+    public TransitionFunction getTransitionFunction() {
+        HashMap<Pair<String, Character>, String> table = new HashMap<>();
+        for (Pair<StateComponent, StateComponent> pair : edges.keySet()) {
+            String stateFrom, stateTo;
+            stateFrom = pair.getKey().getLabel();
+            stateTo = pair.getValue().getLabel();
+            String[] simbols = edges.get(pair).getLabel().split("-");
+
+            for (String simbol : simbols) {
+                table.put(new Pair<String, Character>(stateFrom, simbol.charAt(0)), stateTo);
+            }
+        }
+
+        return (state, c) -> {
+            for (Pair<String, Character> pair : table.keySet()) {
+                if (pair.getKey().equals(state) && pair.getValue().equals(c))
+                    return table.get(pair);
+            }
+            return null;
+        };
     }
 
     void refresh(){
@@ -65,15 +118,14 @@ public class ContentPanel extends JPanel {
         addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
+                grabFocus();
                 if (e.getClickCount() >= 2 && SwingUtilities.isLeftMouseButton(e)) {
                     insertState(e.getX(), e.getY());
-                } if (SwingUtilities.isRightMouseButton(e)) {
-                    setInitialState(e.getX(), e.getY());
+                } if (SwingUtilities.isRightMouseButton(e) && selectedState != null) {
+                    openStateMenu(e.getXOnScreen(), e.getYOnScreen());
                 } if (SwingUtilities.isLeftMouseButton(e)) {
                     selectObject(e.getX(), e.getY());
-                } if (!SwingUtilities.isLeftMouseButton(e) && !SwingUtilities.isRightMouseButton(e)) {
-                    setStateFinal(e.getX(), e.getY());
-                } if (SwingUtilities.isRightMouseButton(e)) {
+                } if (SwingUtilities.isRightMouseButton(e) && selectedState == null) {
                     setFirstStateForLine(e.getX(), e.getY());
                 }
             }
@@ -110,6 +162,12 @@ public class ContentPanel extends JPanel {
                 } else if (e.getKeyCode() == 8) {
                     renameEdge();
                 }
+            }
+        });
+        addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusLost(FocusEvent e) {
+                statePopupMenu.setVisible(false);
             }
         });
     }
@@ -157,6 +215,7 @@ public class ContentPanel extends JPanel {
     }
 
     private void selectObject(int x, int y) {
+        statePopupMenu.setVisible(false);
         selectedState = null;
         selectedEdge = null;
         for (StateComponent stateComponent : states) {
@@ -175,26 +234,13 @@ public class ContentPanel extends JPanel {
         refresh();
     }
 
-    private void setStateFinal(int x, int y) {
-        if (selectedState == null) return;
-        for (StateComponent stateComponent : states) {
-            if (stateComponent == selectedState) {
-                stateComponent.setFinal(!stateComponent.isFinal());
-            }
-            refresh();
-        }
-    }
-
-    private void setInitialState(int x, int y) {
-        if (selectedState == null) return;
-        for (StateComponent stateComponent : states) {
-            if (stateComponent == selectedState) {
-                stateComponent.setInitial(!stateComponent.isInitial());
-            } else {
-                stateComponent.setInitial(false);
-            }
-            refresh();
-        }
+    private void openStateMenu(int x, int y) {
+        statePopupMenu.setLocation(x, y);
+        statePopupMenu.setAlignmentX(x);
+        statePopupMenu.setAlignmentY(y);
+        statePopupMenu.setState(selectedState);
+        statePopupMenu.setVisible(true);
+        refresh();
     }
 
     private void moveState(int x, int y) {
@@ -230,7 +276,6 @@ public class ContentPanel extends JPanel {
         insertEdge();
     }
 
-
     private void insertEdge() {
         if (tempSecondState != null && tempFirstState != null) {
             LinkComponent edge = new LinkComponent(tempFirstState, tempSecondState, "ε");
@@ -242,6 +287,7 @@ public class ContentPanel extends JPanel {
         tempFirstState = tempSecondState = null;
     }
 
+    private StatePopupMenu statePopupMenu;
     private Line2D guideArrow;
     private StateComponent selectedState, tempFirstState, tempSecondState;
     private LinkComponent selectedEdge;

@@ -32,9 +32,13 @@ class StateComponent implements Drawable {
         }
         FontMetrics metrics = g.getFontMetrics(g.getFont());
         if (isInitial) {
-            int stringX = x + (WIDTH - metrics.stringWidth(label))/2 + 2;
-            int stringY = y + ((HEIGHT - metrics.getHeight())/2) + metrics.getAscent() + 2;
-            g.drawString("Init", stringX, stringY);
+            int offsX = x - WIDTH / 2 - 2;
+            int offsY = y;
+            Polygon triangle = new Polygon();
+            triangle.addPoint(offsX, offsY);
+            triangle.addPoint(offsX - 10, offsY + 10);
+            triangle.addPoint(offsX - 10, offsY - 10);
+            g.draw(triangle);
         }
         int stringX = (x - WIDTH/2) + (WIDTH - metrics.stringWidth(label))/2;
         int stringY = (y - HEIGHT/2) + ((HEIGHT - metrics.getHeight())/2) + metrics.getAscent();

@@ -26,10 +26,10 @@ class LinkComponent implements Drawable {
 
         g.setStroke(new BasicStroke(1.2f));
 
-        if (comp1.getX() != comp2.getX() && comp1.getY() != comp2.getY())
-            drawArrow(g);
-        else
+        if (comp1.getX() == comp2.getX() && comp1.getY() == comp2.getY())
             drawLoop(g);
+        else
+            drawArrow(g);
     }
 
     @Override
