@@ -1,10 +1,10 @@
-package gui.components;
+package gui.components.drawing;
 
 import gui.Drawable;
 
 import java.awt.*;
 
-public class StateComponent implements Drawable {
+class StateComponent implements Drawable {
 
     public StateComponent(int x, int y, ContentPanel container) {
         this.x = x;
