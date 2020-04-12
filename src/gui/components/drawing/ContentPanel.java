@@ -230,6 +230,7 @@ public class ContentPanel extends JPanel {
         insertEdge();
     }
 
+
     private void insertEdge() {
         if (tempSecondState != null && tempFirstState != null) {
             LinkComponent edge = new LinkComponent(tempFirstState, tempSecondState, "ε");
