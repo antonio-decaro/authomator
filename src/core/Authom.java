@@ -16,6 +16,8 @@ public class Authom {
         for (int i = 0; i < input.length(); i++) {
             char e = input.charAt(i);
             currentState = function.produce(currentState, e);
+            if (currentState == null || !states.contains(currentState))
+                return false;
         }
         return finalStates.contains(currentState);
     }

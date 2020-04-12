@@ -35,8 +35,9 @@ public class ContentPanel extends JPanel {
 
     public Set<String> getAlphabet() {
         Set<String> ret = new HashSet<>();
-        ret.add("a");
-        ret.add("b");
+        for (Pair<StateComponent, StateComponent> key : edges.keySet()) {
+            ret.addAll(Arrays.asList(edges.get(key).getLabel().split("-")));
+        }
         return ret;
     }
 
