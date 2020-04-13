@@ -8,8 +8,17 @@ import java.awt.geom.Arc2D;
 import java.awt.geom.Line2D;
 import java.awt.geom.Point2D;
 
+/**
+ * This class represents the GUI representation of an edge that binds two states
+ * */
 class LinkComponent implements Drawable {
 
+    /**
+     * Class constructor
+     * @param comp1 the first state to bind
+     * @param comp2 the second state to bind
+     * @param label the label over the edge
+     * */
     public LinkComponent(StateComponent comp1, StateComponent comp2, String label) {
         this.label = label;
         this.comp1 = comp1;
@@ -66,7 +75,9 @@ class LinkComponent implements Drawable {
         this.label = label;
     }
 
-
+    /**
+     * This private method draw an arrow from the comp1 to the comp2
+     * */
     private void drawArrow(Graphics2D g) {
         int radius = comp1.WIDTH / 2;
 
@@ -85,6 +96,9 @@ class LinkComponent implements Drawable {
         drawArrowHead(g, pointTo, from);
     }
 
+    /**
+     * This private method draws a loop edge on the same component (comp1 = comp2)
+     * */
     private void drawLoop(Graphics2D g) {
         arc = new Arc2D.Double(comp1.getX() - 12, comp1.getY() - 50, 25, 65, -180, -180, Arc2D.OPEN);
         g.drawArc(comp1.getX() -12, comp1.getY() - 50, 25, 65, -180, -180);
@@ -96,6 +110,9 @@ class LinkComponent implements Drawable {
         drawLabel(g, labelPoint, 0);
     }
 
+    /**
+     * This private method draws the label on the mid of the edge
+     * */
     private void drawLabel(Graphics2D g, Point2D point, double radius) {
 
         AffineTransform def = g.getTransform();
@@ -106,6 +123,11 @@ class LinkComponent implements Drawable {
         g.setTransform(def);
     }
 
+    /**
+     * This private method draws an arrowhead on point
+     * @param point point on which draw the arrowhead
+     * @param radius the radius of the arrowhead (for rotation)
+     * */
     private void drawArrowHead(Graphics2D g, Point2D point, double radius) {
         AffineTransform def = g.getTransform();
         g.translate(point.getX(), point.getY());
@@ -119,6 +141,9 @@ class LinkComponent implements Drawable {
         g.setTransform(def);
     }
 
+    /**
+     * This private method calculate the angle between to points
+     * */
     private double angleBetween(Point2D from, Point2D to) {
         double x = from.getX();
         double y = from.getY();
@@ -132,6 +157,9 @@ class LinkComponent implements Drawable {
         return rotation;
     }
 
+    /**
+     * This private method, given a center point of the circle, calculate the point on circumference.
+     * */
     private Point2D getPointOnCircle(Point2D center, double radians, double radius) {
         double x = center.getX();
         double y = center.getY();

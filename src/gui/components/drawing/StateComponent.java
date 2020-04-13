@@ -4,8 +4,17 @@ import gui.Drawable;
 
 import java.awt.*;
 
+/**
+ * This class represents the GUI representation of an authom state
+ * */
 class StateComponent implements Drawable {
 
+    /**
+     * Class constructor
+     * @param x the x position of the state in the gui
+     * @param y the y position of the state in the gui
+     * @param container the object that contains this element
+     * */
     public StateComponent(int x, int y, ContentPanel container) {
         this.x = x;
         this.y = y;

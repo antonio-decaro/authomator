@@ -11,8 +11,14 @@ import java.awt.geom.Line2D;
 import java.util.List;
 import java.util.*;
 
+/**
+ * This class represents the container on which draw the authom.
+ * */
 public class ContentPanel extends JPanel {
 
+    /**
+     * Class constructor
+     * */
     public ContentPanel() {
         super();
         states = new LinkedList<>();
@@ -26,6 +32,10 @@ public class ContentPanel extends JPanel {
         addListeners();
     }
 
+    /**
+     * Get all the states of the authom
+     * @return Q set of authom.
+     * */
     public Set<String> getStates() {
         Set<String> ret = new TreeSet<>();
         for (StateComponent stateComponent : states)
@@ -33,6 +43,10 @@ public class ContentPanel extends JPanel {
         return ret;
     }
 
+    /**
+     * Get the alphabet set of the authom
+     * @return the E of the authom
+     * */
     public Set<String> getAlphabet() {
         Set<String> ret = new HashSet<>();
         for (Pair<StateComponent, StateComponent> key : edges.keySet()) {
@@ -41,6 +55,10 @@ public class ContentPanel extends JPanel {
         return ret;
     }
 
+    /**
+     * Get the initial state of the authom
+     * @return the initial state of the authom; null if is not present (error state condition)
+     * */
     public String getInitialState() {
         for (StateComponent stateComponent : states) {
             if (stateComponent.isInitial())
@@ -49,6 +67,10 @@ public class ContentPanel extends JPanel {
         return null;
     }
 
+    /**
+     * Get the set of the final states of the authom
+     * @return the F of the authom (can be empty)
+     * */
     public Set<String> getFinalStates() {
         Set<String> ret = new TreeSet<>();
         for (StateComponent stateComponent : states)
@@ -57,6 +79,10 @@ public class ContentPanel extends JPanel {
         return ret;
     }
 
+    /**
+     * Get the transition function of the authom
+     * @return the f of the authom.
+     * */
     public TransitionFunction getTransitionFunction() {
         HashMap<Pair<String, Character>, String> table = new HashMap<>();
         for (Pair<StateComponent, StateComponent> pair : edges.keySet()) {
@@ -79,6 +105,9 @@ public class ContentPanel extends JPanel {
         };
     }
 
+    /**
+     * This package-private method is used to repaint all the objects
+     * */
     void refresh(){
         revalidate();
         repaint();
@@ -115,6 +144,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * This private method initialize all listeners on the container
+     * */
     private void addListeners() {
         addMouseListener(new MouseAdapter() {
             @Override
@@ -173,6 +205,9 @@ public class ContentPanel extends JPanel {
         });
     }
 
+    /**
+     * This private method insert a new state on position x and y
+     * */
     private void insertState(int x, int y) {
         for (StateComponent state : states) {
             if (state.contains(x, y))
@@ -182,6 +217,9 @@ public class ContentPanel extends JPanel {
         refresh();
     }
 
+    /**
+     * This private method remove a state or an edge on the panel
+     * */
     private void deleteObject() {
         if (selectedState != null) {
             states.remove(selectedState);
@@ -194,6 +232,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * This method add a symbol on the edge label
+     * */
     private void renameEdge(char c) {
         if (selectedEdge != null) {
             if (selectedEdge.getLabel().equals("ε"))
@@ -204,6 +245,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * This method remove a symbol on the edge label (if only one symbol is presents, put the epsilon -empty string)
+     * */
     private void renameEdge() {
         if (selectedEdge != null) {
             String label = selectedEdge.getLabel();
@@ -215,6 +259,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * Select an object on the panel
+     * */
     private void selectObject(int x, int y) {
         statePopupMenu.setVisible(false);
         selectedState = null;
@@ -235,6 +282,9 @@ public class ContentPanel extends JPanel {
         refresh();
     }
 
+    /**
+     * Open the pop up menu when clicking with right mouse button if a state is selected
+     * */
     private void openStateMenu(int x, int y) {
         statePopupMenu.setLocation(x, y);
         statePopupMenu.setAlignmentX(x);
@@ -244,6 +294,9 @@ public class ContentPanel extends JPanel {
         refresh();
     }
 
+    /**
+     * Moves a state over the panel
+     * */
     private void moveState(int x, int y) {
         for (StateComponent state : states) {
             if (state.contains(x, y)) {
@@ -257,6 +310,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * Select a first state to creating an edge
+     * */
     private void setFirstStateForLine(int x, int y) {
         for (StateComponent state : states) {
             if (state.contains(x, y)) {
@@ -267,6 +323,9 @@ public class ContentPanel extends JPanel {
         }
     }
 
+    /**
+     * Select a second state to creating an edge
+     * */
     private void setSecondStateForLine(int x, int y) {
         for (StateComponent state : states) {
             if (state.contains(x, y) && tempFirstState != null) {
@@ -277,11 +336,16 @@ public class ContentPanel extends JPanel {
         insertEdge();
     }
 
+    /**
+     * Create an edge between to states.
+     * @see ContentPanel::setFirstStateForLine
+     * @see ContentPanel::setSecondStateForLine
+     * */
     private void insertEdge() {
         if (tempSecondState != null && tempFirstState != null) {
             LinkComponent edge = new LinkComponent(tempFirstState, tempSecondState, "ε");
             Pair<StateComponent, StateComponent> pair = new Pair<>(tempFirstState, tempSecondState);
-            edges.put(pair, edge);
+            edges.putIfAbsent(pair, edge);
             refresh();
         }
 
