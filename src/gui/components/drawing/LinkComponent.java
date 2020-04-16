@@ -5,7 +5,7 @@ import gui.Drawable;
 import java.awt.*;
 import java.awt.geom.AffineTransform;
 import java.awt.geom.Arc2D;
-import java.awt.geom.Line2D;
+import java.awt.geom.Path2D;
 import java.awt.geom.Point2D;
 
 /**
@@ -23,6 +23,10 @@ class LinkComponent implements Drawable {
         this.label = label;
         this.comp1 = comp1;
         this.comp2 = comp2;
+
+        pointFrom = new Point2D.Double(comp1.getX(), comp1.getY());
+        pointTo = new Point2D.Double(comp2.getX(), comp2.getY());
+        curvePoint = new Point2D.Double((pointFrom.getX() + pointTo.getX()) / 2, (pointFrom.getY() + pointTo.getY()) / 2);
     }
 
     @Override
@@ -43,12 +47,7 @@ class LinkComponent implements Drawable {
 
     @Override
     public boolean contains(int x, int y) {
-        if (line != null)
-            return line.intersects(x, y, 5, 5);
-        else if (arc != null)
-            return arc.intersects(x, y, 5, 5);
-        else
-            return false;
+        return path.intersects(x, y, 5, 5);
     }
 
     public StateComponent getComp1() {
@@ -85,13 +84,18 @@ class LinkComponent implements Drawable {
         Point2D center2 = new Point2D.Double(comp2.getX(), comp2.getY());
         double from = angleBetween(center1, center2);
         double to = angleBetween(center2, center1);
-        Point2D pointFrom = getPointOnCircle(center1, from, radius);
-        Point2D pointTo = getPointOnCircle(center2, to, radius);
-        line = new Line2D.Double(pointFrom, pointTo);
+        pointFrom = getPointOnCircle(center1, from, radius);
+        pointTo = getPointOnCircle(center2, to, radius);
+        if (!customCurvePoint)
+            curvePoint = new Point2D.Double((pointFrom.getX() + pointTo.getX()) / 2, (pointFrom.getY() + pointTo.getY()) / 2);
 
-        g.drawLine((int)pointFrom.getX(), (int)pointFrom.getY(), (int)pointTo.getX(), (int)pointTo.getY());
+        path = new Path2D.Double();
+        path.moveTo(pointFrom.getX(), pointFrom.getY());
+        path.curveTo(pointFrom.getX(), pointFrom.getY(), curvePoint.getX(), curvePoint.getY(), pointTo.getX(), pointTo.getY());
 
-        Point2D labelPoint = new Point2D.Double((line.getX1() + line.getX2()) / 2, (line.getY1() + line.getY2()) / 2);
+        g.draw(path);
+
+        Point2D labelPoint = new Point2D.Double(curvePoint.getX(), curvePoint.getY());
         drawLabel(g, labelPoint, from);
         drawArrowHead(g, pointTo, from);
     }
@@ -100,13 +104,14 @@ class LinkComponent implements Drawable {
      * This private method draws a loop edge on the same component (comp1 = comp2)
      * */
     private void drawLoop(Graphics2D g) {
-        arc = new Arc2D.Double(comp1.getX() - 12, comp1.getY() - 50, 25, 65, -180, -180, Arc2D.OPEN);
-        g.drawArc(comp1.getX() -12, comp1.getY() - 50, 25, 65, -180, -180);
+        Arc2D arc = new Arc2D.Double(comp1.getX() - 12, comp1.getY() - 50, 25, 65, -180, -180, Arc2D.OPEN);
+        path = new Path2D.Double(arc);
+        g.draw(path);
         drawArrowHead(g, new Point2D.Double(comp1.getX() + 13, comp1.getY() - 20), Math.PI);
 
         FontMetrics metrics = g.getFontMetrics();
         double stringWidth = metrics.stringWidth(label);
-        Point2D labelPoint = new Point2D.Double(comp1.getX() - stringWidth/2, comp2.getY() - 52);
+        Point2D labelPoint = new Point2D.Double(comp1.getX() - stringWidth/2, comp1.getY() - 52);
         drawLabel(g, labelPoint, 0);
     }
 
@@ -117,8 +122,8 @@ class LinkComponent implements Drawable {
 
         AffineTransform def = g.getTransform();
         g.translate(point.getX(), point.getY());
-        if (line != null)
-            g.rotate(line.getX2() > line.getX1() ? radius - Math.PI/2 : radius + Math.PI/2);
+        if (!pointFrom.equals(pointTo))
+            g.rotate(pointTo.getX() > pointFrom.getX() ? radius - Math.PI/2 : radius + Math.PI/2);
         g.drawString(label, 0, 0);
         g.setTransform(def);
     }
@@ -157,6 +162,38 @@ class LinkComponent implements Drawable {
         return rotation;
     }
 
+    public Point2D getCurvePoint() {
+        return curvePoint;
+    }
+
+    public void setCurvePoint(Point2D curvePoint) {
+        this.curvePoint = curvePoint;
+    }
+
+    public Point2D getPointFrom() {
+        return pointFrom;
+    }
+
+    public void setPointFrom(Point2D pointFrom) {
+        this.pointFrom = pointFrom;
+    }
+
+    public Point2D getPointTo() {
+        return pointTo;
+    }
+
+    public void setPointTo(Point2D pointTo) {
+        this.pointTo = pointTo;
+    }
+
+    public boolean isCustomCurvePoint() {
+        return customCurvePoint;
+    }
+
+    public void setCustomCurvePoint(boolean customCurvePoint) {
+        this.customCurvePoint = customCurvePoint;
+    }
+
     /**
      * This private method, given a center point of the circle, calculate the point on circumference.
      * */
@@ -168,11 +205,13 @@ class LinkComponent implements Drawable {
         double xPosy = Math.round((float) (x + Math.cos(radians) * radius));
         double yPosy = Math.round((float) (y + Math.sin(radians) * radius));
 
+
         return new Point2D.Double(xPosy, yPosy);
     }
 
     private String label;
     private StateComponent comp1, comp2;
-    private Line2D line;
-    private Arc2D arc;
+    private boolean customCurvePoint;
+    private Point2D pointFrom, pointTo, curvePoint;
+    private Path2D path;
 }

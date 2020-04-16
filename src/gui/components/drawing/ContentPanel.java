@@ -8,6 +8,7 @@ import javax.swing.border.StrokeBorder;
 import java.awt.*;
 import java.awt.event.*;
 import java.awt.geom.Line2D;
+import java.awt.geom.Point2D;
 import java.util.List;
 import java.util.*;
 
@@ -164,6 +165,8 @@ public class ContentPanel extends JPanel {
                     openStateMenu(e.getXOnScreen(), e.getYOnScreen());
                 } else if (SwingUtilities.isRightMouseButton(e) && selectedState == null) {
                     setFirstStateForLine(e.getX(), e.getY());
+                } if (SwingUtilities.isRightMouseButton(e) && selectedEdge != null) {
+                    resetEdgeCurve();
                 }
             }
             @Override
@@ -180,7 +183,10 @@ public class ContentPanel extends JPanel {
             @Override
             public void mouseDragged(MouseEvent e) {
                 if (SwingUtilities.isLeftMouseButton(e))
-                    moveState(e.getX(), e.getY());
+                    if (selectedState != null)
+                        moveState(e.getX(), e.getY());
+                    if (selectedEdge != null)
+                        curveEdge(e.getX(), e.getY());
                 if (SwingUtilities.isRightMouseButton(e)) {
                     if (guideArrow != null) {
                         guideArrow.setLine(guideArrow.getX1(), guideArrow.getY1(), e.getX(), e.getY());
@@ -312,6 +318,23 @@ public class ContentPanel extends JPanel {
                 break;
             }
         }
+    }
+
+    /**
+     * Puts a curve on a edge
+     * */
+    private void curveEdge(int x, int y) {
+        selectedEdge.setCurvePoint(new Point2D.Double(x, y));
+        selectedEdge.setCustomCurvePoint(true);
+        refresh();
+    }
+
+    /**
+     * Reset the curve point of an edge
+     * */
+    private void resetEdgeCurve() {
+        selectedEdge.setCustomCurvePoint(false);
+        refresh();
     }
 
     /**
