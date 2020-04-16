@@ -150,19 +150,22 @@ public class ContentPanel extends JPanel {
     private void addListeners() {
         addMouseListener(new MouseAdapter() {
             @Override
+            public void mouseClicked(MouseEvent e) {
+                if (SwingUtilities.isLeftMouseButton(e)) {
+                    selectObject(e.getX(), e.getY());
+                }
+            }
+            @Override
             public void mousePressed(MouseEvent e) {
                 grabFocus();
                 if (e.getClickCount() >= 2 && SwingUtilities.isLeftMouseButton(e)) {
                     insertState(e.getX(), e.getY());
-                } if (SwingUtilities.isRightMouseButton(e) && selectedState != null) {
+                } else if (SwingUtilities.isRightMouseButton(e) && selectedState != null) {
                     openStateMenu(e.getXOnScreen(), e.getYOnScreen());
-                } if (SwingUtilities.isLeftMouseButton(e)) {
-                    selectObject(e.getX(), e.getY());
-                } if (SwingUtilities.isRightMouseButton(e) && selectedState == null) {
+                } else if (SwingUtilities.isRightMouseButton(e) && selectedState == null) {
                     setFirstStateForLine(e.getX(), e.getY());
                 }
             }
-
             @Override
             public void mouseReleased(MouseEvent e) {
                 if (SwingUtilities.isRightMouseButton(e)) {
@@ -172,6 +175,7 @@ public class ContentPanel extends JPanel {
                 }
             }
         });
+
         addMouseMotionListener(new MouseMotionAdapter() {
             @Override
             public void mouseDragged(MouseEvent e) {
